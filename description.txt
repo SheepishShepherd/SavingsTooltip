@@ -1,1 +1,1 @@
-Shop items will display if an item is being sold at a discount or extra pay. The tooltip is underneath the buy price.
+Shop items will inform the player if an item is being sold at a discount or for extra pay. The tooltip is displayed underneath the buy price.

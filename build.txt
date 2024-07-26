@@ -1,4 +1,4 @@
-displayName = Discount Savings Tooltips
+displayName = Penny Pincher - Savings Tooltip
 author = SheepishShepherd
 version = 0.1
 side = Client
