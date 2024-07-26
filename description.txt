@@ -1,0 +1,1 @@
+Shop items will display if an item is being sold at a discount or extra pay. The tooltip is underneath the buy price.
