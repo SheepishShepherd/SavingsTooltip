@@ -49,8 +49,8 @@ namespace SavingsTooltip
 				int index = tooltips.FindIndex(line => line.Mod == "Terraria" && line.Name == "Price");
 				if (index >= 0) {
 					string priceDiff = Test(item, out float percent, out Color color);
-					string start = Language.GetTextValue($"Mods.SavingsTooltip.{(color == Colors.RarityGreen ? "Off" : "Increase")}");
-					var line = new TooltipLine(Mod, "SavingsTooltip", $"[i:{ItemID.CopperCoin}] {percent * 100:0}% {start} ({priceDiff})") {
+					string percentDiff = Language.GetTextValue($"Mods.SavingsTooltip.{(color == Colors.RarityGreen ? "Off" : "Markup")}", (percent * 100).ToString("0"));
+					var line = new TooltipLine(Mod, "SavingsTooltip", $"[i:{ItemID.CopperCoin}] {percentDiff} ({priceDiff})") {
 						OverrideColor = color
 					};
 					tooltips.Insert(index + 1, line);
