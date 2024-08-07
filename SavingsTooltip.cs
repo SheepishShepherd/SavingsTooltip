@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -13,45 +12,33 @@ namespace SavingsTooltip
 	}
 
 	public class ItemTooltips : GlobalItem {
-		public string Test(Item item, out float percent, out Color diff) {
-			Main.LocalPlayer.GetItemExpectedPrice(item, out var calcForSelling, out var calcForBuying);
-			string text = "";
-			int priceDiff = (item.shopCustomPrice ?? item.value) - (int)calcForBuying;
-			percent = (priceDiff < 0 ? -1 : 1) * (float)priceDiff / (float)(item.shopCustomPrice ?? item.value);
-			diff = priceDiff < 0 ? Colors.RarityRed : Colors.RarityGreen;
-			
-			if (priceDiff < 0) {
-				priceDiff *= -1;
+		public string CalculateDiscount(Item item, out int priceDiff, out bool isDiscounted) {
+			Main.LocalPlayer.GetItemExpectedPrice(item, out _, out long calcForBuying); // the price the player pays
+			priceDiff = item.GetStoreValue() - (int)calcForBuying; // the price difference of the shop item value and the player buy price
+			isDiscounted = true; // default to a discount (or retail value)
+
+			if (priceDiff == 0) {
+				return Language.GetTextValue($"Mods.SavingsTooltip.NoDifference");
 			}
-			if (priceDiff >= 1000000) {
-				int plat = priceDiff / 1000000;
-				priceDiff -= plat * 1000000;
-				text += $"{plat} {Lang.inter[15].Value} ";
+			else {
+				if (priceDiff < 0) {
+					priceDiff *= -1; // priceDiff must be displayed as a postive value
+					isDiscounted = false; // if the priceDiff was negative before, it becomes a markup
+				}
+				return Language.GetTextValue($"Mods.SavingsTooltip.{(isDiscounted ? "Off" : "Markup")}", ((float)priceDiff / (float)item.GetStoreValue() * 100).ToString("0"));
 			}
-			if (priceDiff >= 10000) {
-				int gold = priceDiff / 10000;
-				priceDiff -= gold * 10000;
-				text += $"{gold} {Lang.inter[16].Value} ";
-			}
-			if (priceDiff >= 100) {
-				int silv = priceDiff / 100;
-				priceDiff -= silv * 100;
-				text += $"{silv} {Lang.inter[17].Value} ";
-			}
-			if (priceDiff >= 1) {
-				text += $"{priceDiff} {Lang.inter[18].Value} ";
-			}
-			return text.TrimEnd();
 		}
 
         public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
 			if (Main.LocalPlayer.talkNPC != -1 && item.value > 0 && item.isAShopItem) {
 				int index = tooltips.FindIndex(line => line.Mod == "Terraria" && line.Name == "Price");
 				if (index >= 0) {
-					string priceDiff = Test(item, out float percent, out Color color);
-					string percentDiff = Language.GetTextValue($"Mods.SavingsTooltip.{(color == Colors.RarityGreen ? "Off" : "Markup")}", (percent * 100).ToString("0"));
-					var line = new TooltipLine(Mod, "SavingsTooltip", $"[i:{ItemID.CopperCoin}] {percentDiff} ({priceDiff})") {
-						OverrideColor = color
+					string priceDiff = CalculateDiscount(item, out int coins, out bool discounted);
+					if (coins > 0)
+						priceDiff += $" ({Main.ValueToCoins(coins)})";
+
+					var line = new TooltipLine(Mod, "SavingsTooltip", $"[i:{ItemID.CopperCoin}] {priceDiff}") {
+						OverrideColor = discounted ? Colors.RarityGreen : Colors.RarityRed
 					};
 					tooltips.Insert(index + 1, line);
 				}
